@@ -120,45 +120,125 @@ void StrList_insertLast(StrList* StrList, const char* data){
 /*
 * Inserts an element at given index
 */
-void StrList_insertAt(StrList* StrList, const char* data,int index);
+
+// Test this ..
+void StrList_insertAt(StrList* StrList, const char* data,int index){
+
+    StrNode* node = StrList->_root;
+
+    if(node == NULL || StrList->_size < sizeof(index)){
+        return;
+    } 
+
+    //Allocate the new node
+    StrNode* newNode = StrNode_alloc();
+    newNode->_string = data;
+
+
+    if(index == 0){
+        newNode->_next = StrList->_root;
+        StrList->_root = newNode;
+    } else {
+
+        for(int i = 0; i < index - 1; i++){
+            node = node->_next;
+        }
+
+        newNode->_next = node->_next;
+        node->_next = newNode;
+
+    }
+
+    StrList->_size++;
+
+}
 
 /*
  * Returns the StrList first data.
  */
-char* StrList_firstData(const StrList* StrList);
+char* StrList_firstData(const StrList* StrList){
+    return StrList->_root->_string;
+}
 
 /*
  * Prints the StrList to the standard output.
  */
-void StrList_print(const StrList* StrList);
+void StrList_print(const StrList* StrList){
+    if(StrList == NULL){
+        return;
+    }
+    StrNode* node = StrList->_root;
+    while(node){
+        printf("%s ",node->_string);
+        node = node->_next;
+    }
+    printf("\n");
+}
 
 /*
  Prints the word at the given index to the standard output.
 */
-void StrList_printAt(const StrList* Strlist,int index);
+void StrList_printAt(const StrList* Strlist,int index){
+    StrNode* node = StrList->_root;
+
+    if(StrList->_size < sizeof(index)){
+        return;
+    } 
+
+    if(index == 0){
+        printf("%s \n",node->_string);
+    } else {
+        for(int i = 0; i < index - 1; i++){
+            node = node->_next;
+        }
+        printf("%s \n",node->_string);
+    }
+}
 
 /*
  * Return the amount of chars in the list.
 */
-int StrList_printLen(const StrList* Strlist);
+int StrList_printLen(const StrList* Strlist){
+    int sum = 0;
+    StrNode* node = StrList->_root;
+    while(node){
+        sum += (int)strlen(node->_string);
+        node = node->_next;
+    }
+    return sum;
+}
 
 /*
 Given a string, return the number of times it exists in the list.
 */
-int StrList_count(StrList* StrList, const char* data);
+int StrList_count(StrList* StrList, const char* data){
+    int result = 0;
+    StrNode* node = StrList->_root;
+
+    while(node){
+        if(strcmp(node->_string,data) == 0){
+            result++;
+        }
+        node = node->_next;
+    }
+    
+    return result;
+}
 
 /*
 	Given a string and a list, remove all the appearences of this string in the list.
 */
 
-//use removeAt if the String matches. 
+//use removeAt if the String matches. decrease size
 void StrList_remove(StrList* StrList, const char* data);
 
 /*
 	Given an index and a list, remove the string at that index.
 */
+// decrease size
 void StrList_removeAt(StrList* StrList, int index);
 
+    StrList->_size = StrList->_size - 1;
 /*
  * Checks if two StrLists have the same elements
  * returns 0 if not and any other number if yes
