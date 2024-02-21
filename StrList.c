@@ -8,7 +8,7 @@
 
 typedef struct _StrNode {
     char* _string;
-    struct StrNode* _next;
+    struct _StrNode* _next;
 } StrNode;
 
 typedef struct _StrList {
@@ -55,6 +55,12 @@ StrList* StrList_alloc(){
  * If StrList==NULL does nothing (same as free).
  */
 
+
+void StrNode_free(StrNode* node){
+    free(node->_string);
+    free(node);
+}
+
 void StrList_free(StrList* root) {
     if(root == NULL){
         return;
@@ -96,7 +102,7 @@ size_t StrList_size(const StrList* StrList){
 // Dangerous code, IDK if it's gonna work.
 void StrList_insertLast(StrList* StrList, const char* data){
 
-    if(StrList == NULL){
+    if(StrList == NULL || data == NULL){
         return;
     }
 
@@ -108,13 +114,11 @@ void StrList_insertLast(StrList* StrList, const char* data){
     }
 
     node->_next = StrNode_alloc();
-    if(node->_next == NULL){
-        return; //Just in case..
-    }
+
     node = node->_next;
     node->_string = data;
 
-    StrList->_size++; 
+    (StrList->_size)++; 
 }
 
 /*
@@ -149,7 +153,7 @@ void StrList_insertAt(StrList* StrList, const char* data,int index){
 
     }
 
-    StrList->_size++;
+    (StrList->_size)++;
 
 }
 
@@ -178,10 +182,10 @@ void StrList_print(const StrList* StrList){
 /*
  Prints the word at the given index to the standard output.
 */
-void StrList_printAt(const StrList* Strlist,int index){
-    StrNode* node = StrList->_root;
+void StrList_printAt(const StrList* list,int index){
+    StrNode* node = list->_root;
 
-    if(StrList->_size < sizeof(index)){
+    if(list->_size < sizeof(index)){
         return;
     } 
 
@@ -198,9 +202,9 @@ void StrList_printAt(const StrList* Strlist,int index){
 /*
  * Return the amount of chars in the list.
 */
-int StrList_printLen(const StrList* Strlist){
+int StrList_printLen(const StrList* list){
     int sum = 0;
-    StrNode* node = StrList->_root;
+    StrNode* node = list->_root;
     while(node){
         sum += (int)strlen(node->_string);
         node = node->_next;
@@ -230,28 +234,104 @@ int StrList_count(StrList* StrList, const char* data){
 */
 
 //use removeAt if the String matches. decrease size
-void StrList_remove(StrList* StrList, const char* data);
+void StrList_remove(StrList* list, const char* data){
+
+    if(list == NULL){
+        return; //List is empty or index out of bounds.
+    }    
+
+    StrNode* node = list->_root; //Index 0.
+    StrNode* prevNode = NULL;
+    
+    while(node){
+
+        if(strcmp(node->_string,data) == 0){
+            if(prevNode){
+                prevNode->_next = node->_next; //Connect the i-1'th index to the i+1'th index.
+            } else{
+                list->_root = node->_next; //Connect to the root.
+            }
+
+            StrNode_free(node);
+            (list->_size)--;
+
+            if(prevNode){
+                node = prevNode->_next;
+            }else{
+                node = list->_root; //We deleted the first, therefore we connect to the root
+            }
+        }else{
+          //Move onto the next node.
+          prevNode = node;
+          node = node->_next;  
+        }
+    }
+
+}
 
 /*
 	Given an index and a list, remove the string at that index.
 */
 // decrease size
-void StrList_removeAt(StrList* StrList, int index);
+void StrList_removeAt(StrList* list, int index){
 
-    StrList->_size = StrList->_size - 1;
+    StrNode* node = list->_root; //Index 0.
+
+    if(node == NULL || list->_size < sizeof(index)){
+        return; //List is empty or index out of bounds.
+    }    
+
+    if(index == 0){
+        list->_root = node->_next;
+    } else {
+        StrNode* prevNode = NULL;
+        for(int i = 0; i < index - 1; i++){
+            prevNode = node;
+            node = node->_next;
+        }
+        prevNode->_next = node->_next; //Connect the i-1'th index to the i+1'th index.
+    }
+
+    StrNode_free(node);
+
+    (list->_size)--;
+
+}
 /*
  * Checks if two StrLists have the same elements
  * returns 0 if not and any other number if yes
  */
+
 //Loop, if one string doesn't match the other at the same index return false.
-int StrList_isEqual(const StrList* StrList1, const StrList* StrList2);
+int StrList_isEqual(const StrList* list1, const StrList* list2){
+  if(list1 == NULL || list2 == NULL || list2->_size != list1->_size){
+        return 0; //List is empty or index out of bounds.
+    }    
+
+    StrNode* node1 = list1->_root; //Index 0.
+    StrNode* node2 = list2->_root; //Index 0.
+
+    while(node1 && node2){
+        if(strcmp(node1->_string,node2->_string) == 0){
+            node1 = node1->_next;
+            node2 = node2->_next;
+        }else{
+            return 0;
+        }
+      
+    }
+    return 1;
+}
 
 /*
  * Clones the given StrList. 
  * It's the user responsibility to free it with StrList_free.
  */
 
-StrList* StrList_clone(const StrList* StrList);
+StrList* StrList_clone(const StrList* list){
+    StrList* clone = StrList_alloc();
+    return clone;
+}
 
 /*
  * Reverces the given StrList. 
