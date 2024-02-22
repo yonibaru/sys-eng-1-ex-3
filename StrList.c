@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "StrList.h"
 
 /*
  * StrList represents a StrList data structure.
@@ -34,7 +35,6 @@ StrNode* StrNode_alloc(){
 
     return node;
 }
-
 StrList* StrList_alloc(){
     //Allocate a LinkedList
 
@@ -61,7 +61,7 @@ void StrNode_free(StrNode* node){
     free(node);
 }
 
-void StrList_free(StrList* root) {
+void StrList_free(StrList* root){
     if(root == NULL){
         return;
     }
@@ -84,7 +84,7 @@ void StrList_free(StrList* root) {
     // free(root->_size); # Not dynamically allocated, therefore we don't need to free it.
     // free(root->_root); # Empty pointer that we already free in the code above. No need to free it twice!
     free(root); //This is enough to free the list.
-};
+}
 
 /*
  * Returns the number of elements in the StrList.
@@ -99,24 +99,31 @@ size_t StrList_size(const StrList* StrList){
  * Inserts an element in the end of the StrList.
  */
 
-// Dangerous code, IDK if it's gonna work.
 void StrList_insertLast(StrList* StrList, const char* data){
 
     if(StrList == NULL || data == NULL){
+        return;
+    }
+    
+    if(StrList->_size < 1){
+        StrNode* newNode = StrNode_alloc();
+        newNode->_string = strdup(data);
+        StrList->_root = newNode;
+        (StrList->_size)++; 
         return;
     }
 
     StrNode* node = StrList->_root;
 
     //Iterate through the list until we find the last spot
-    while(node->_next != NULL){
+    while(node->_next){
         node = node->_next;
     }
 
-    node->_next = StrNode_alloc();
+    StrNode* newNode = StrNode_alloc();
+    newNode->_string = strdup(data);
 
-    node = node->_next;
-    node->_string = data;
+    node->_next = newNode;
 
     (StrList->_size)++; 
 }
@@ -124,26 +131,23 @@ void StrList_insertLast(StrList* StrList, const char* data){
 /*
 * Inserts an element at given index
 */
-
-// Test this ..
 void StrList_insertAt(StrList* StrList, const char* data,int index){
 
-    StrNode* node = StrList->_root;
-
-    if(node == NULL || StrList->_size < sizeof(index)){
+    if((int)(StrList->_size) < index){
         return;
     } 
 
+
     //Allocate the new node
     StrNode* newNode = StrNode_alloc();
-    newNode->_string = data;
+    newNode->_string = strdup(data);
 
 
     if(index == 0){
         newNode->_next = StrList->_root;
         StrList->_root = newNode;
     } else {
-
+        StrNode* node = StrList->_root;
         for(int i = 0; i < index - 1; i++){
             node = node->_next;
         }
@@ -167,11 +171,11 @@ char* StrList_firstData(const StrList* StrList){
 /*
  * Prints the StrList to the standard output.
  */
-void StrList_print(const StrList* StrList){
-    if(StrList == NULL){
+void StrList_print(const StrList* list){
+    if(list == NULL){
         return;
     }
-    StrNode* node = StrList->_root;
+    StrNode* node = list->_root;
     while(node){
         printf("%s ",node->_string);
         node = node->_next;
@@ -183,19 +187,19 @@ void StrList_print(const StrList* StrList){
  Prints the word at the given index to the standard output.
 */
 void StrList_printAt(const StrList* list,int index){
-    StrNode* node = list->_root;
 
-    if(list->_size < sizeof(index)){
+    if((int)(list->_size) - 1 < index){
         return;
     } 
 
+    StrNode* node = list->_root;
     if(index == 0){
         printf("%s \n",node->_string);
     } else {
         for(int i = 0; i < index - 1; i++){
             node = node->_next;
         }
-        printf("%s \n",node->_string);
+        printf("%s \n",node->_next->_string);
     }
 }
 
@@ -232,8 +236,6 @@ int StrList_count(StrList* StrList, const char* data){
 /*
 	Given a string and a list, remove all the appearences of this string in the list.
 */
-
-//use removeAt if the String matches. decrease size
 void StrList_remove(StrList* list, const char* data){
 
     if(list == NULL){
@@ -272,12 +274,11 @@ void StrList_remove(StrList* list, const char* data){
 /*
 	Given an index and a list, remove the string at that index.
 */
-// decrease size
 void StrList_removeAt(StrList* list, int index){
 
     StrNode* node = list->_root; //Index 0.
 
-    if(node == NULL || list->_size < sizeof(index)){
+    if(node == NULL || (int)(list->_size) - 1 < index){
         return; //List is empty or index out of bounds.
     }    
 
@@ -285,15 +286,18 @@ void StrList_removeAt(StrList* list, int index){
         list->_root = node->_next;
     } else {
         StrNode* prevNode = NULL;
-        for(int i = 0; i < index - 1; i++){
+        for(int i = 0; i < index; i++){
             prevNode = node;
             node = node->_next;
         }
-        prevNode->_next = node->_next; //Connect the i-1'th index to the i+1'th index.
+        if(prevNode == NULL){
+            list->_root = node->_next;
+        } else {
+            prevNode->_next = node->_next; //Connect the i-1'th index to the i+1'th index.
+        }      
     }
 
     StrNode_free(node);
-
     (list->_size)--;
 
 }
@@ -340,7 +344,7 @@ StrList* StrList_clone(const StrList* list){
 
 
     //Iterables
-    StrNode* node = list->_root->next;
+    StrNode* node = list->_root->_next;
     StrNode* prevCloneNode = clone->_root;
 
     while(node){
@@ -360,7 +364,7 @@ StrList* StrList_clone(const StrList* list){
 /*
  * Reverces the given StrList. 
  */
-void StrList_reverse(StrList* list){
+void StrList_reverse(StrList* list) {
 
     if (list == NULL){
         return;
@@ -370,7 +374,7 @@ void StrList_reverse(StrList* list){
     StrNode* prevNode = NULL;
     StrNode* nextNode = NULL;
 
-    while (prevNode) {
+    while (node) {
         nextNode = node->_next; //Move the nextNode pointer forward.
         node->_next = prevNode; //Change the pointer direction.
         prevNode = node; //Move the prevNode pointer forward.
@@ -427,20 +431,22 @@ void StrList_sort( StrList* list){
 int StrList_isSorted(StrList* list){
 
     if(list == NULL){
-        return 1;
+        return -1;
     }
 
     //Pointers we need
     StrNode* currNode = list->_root;
-    StrNode* nextNode = list->_next;
+    StrNode* nextNode = currNode->_next;
 
-    while(currNode){
+    while(currNode && nextNode){
         if(strcmp(currNode->_string, nextNode->_string) > 0){
+            printf("false\n");
             return 0;
         }
         //Move the pointers forward
         currNode = currNode->_next; 
         nextNode = nextNode->_next; 
     }
+    printf("true\n");
     return 1;
 }
