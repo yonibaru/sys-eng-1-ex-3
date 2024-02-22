@@ -329,22 +329,118 @@ int StrList_isEqual(const StrList* list1, const StrList* list2){
  */
 
 StrList* StrList_clone(const StrList* list){
+    if(list == NULL){
+        return NULL;
+    }
+
     StrList* clone = StrList_alloc();
+    clone->_root = StrNode_alloc();
+
+    clone->_root->_string = strdup(list->_root->_string); //copy
+
+
+    //Iterables
+    StrNode* node = list->_root->next;
+    StrNode* prevCloneNode = clone->_root;
+
+    while(node){
+        StrNode* newNode = StrNode_alloc();
+        newNode->_string = strdup(node->_string);
+        prevCloneNode->_next = newNode;
+
+        prevCloneNode = prevCloneNode->_next;
+        node = node->_next; //Move onto the next node;
+    }
+
+    clone->_size = list->_size;
+
     return clone;
 }
 
 /*
  * Reverces the given StrList. 
  */
-void StrList_reverse( StrList* StrList);
+void StrList_reverse(StrList* list){
+
+    if (list == NULL){
+        return;
+    }
+
+    StrNode* node = list->_root;
+    StrNode* prevNode = NULL;
+    StrNode* nextNode = NULL;
+
+    while (prevNode) {
+        nextNode = node->_next; //Move the nextNode pointer forward.
+        node->_next = prevNode; //Change the pointer direction.
+        prevNode = node; //Move the prevNode pointer forward.
+        node = nextNode; //Move the node pointer forward.
+    }
+
+    //Finally, connect StrList to the new root.
+    list->_root = prevNode;
+}
 
 /*
  * Sort the given list in lexicographical order 
  */
-void StrList_sort( StrList* StrList);
+
+//In this approach, we will use bubble sort and change the strings between the nodes themselves, not the pointers.
+
+void StrList_sort( StrList* list){
+    if(list == NULL){
+        return;
+    }
+
+    int n = (int)list->_size;
+
+    //Pointers we need
+    StrNode* nextNode;
+    StrNode* currNode;
+
+    for (int i = 0; i < n - 1; i++) {
+
+        //Bring the pointers back
+        currNode = list->_root;
+        nextNode = currNode->_next;
+
+        for (int j = 0; j < n - i - 1; j++) {
+
+            if(strcmp(currNode->_string, nextNode->_string) > 0){
+                //Swap
+                char* temp = nextNode->_string;
+                nextNode->_string = currNode->_string;
+                currNode->_string = temp;
+            }
+
+            //Move the pointers forward
+            currNode = currNode->_next; 
+            nextNode = nextNode->_next; 
+        }
+    }
+}
 
 /*
  * Checks if the given list is sorted in lexicographical order
  * returns 1 for sorted,   0 otherwise
  */
-int StrList_isSorted(StrList* StrList);
+int StrList_isSorted(StrList* list){
+
+    if(list == NULL){
+        return 1;
+    }
+
+    //Pointers we need
+    StrNode* currNode = list->_root;
+    StrNode* nextNode = list->_next;
+
+    while(currNode){
+        if(strcmp(currNode->_string, nextNode->_string) > 0){
+            return 0;
+        }
+        //Move the pointers forward
+        currNode = currNode->_next; 
+        nextNode = nextNode->_next; 
+    }
+    return 1;
+}
