@@ -175,7 +175,9 @@ void StrList_print(const StrList* list){
     if(list == NULL){
         return;
     }
+
     StrNode* node = list->_root;
+
     while(node){
         printf("%s ",node->_string);
         node = node->_next;

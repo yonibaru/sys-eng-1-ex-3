@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "StrList.h"
-#include "StrList.c"
+// #include "StrList.c"
 
 
 int main(){
@@ -78,6 +78,7 @@ int main(){
             case 11:
                 //Delete the entire LinkedList
                 StrList_free(list);
+                list = NULL; //We pointed to a list we freed. This created an error.
                 break;
             case 12:
                 //Sort the LinkedList lexicographically 
@@ -86,10 +87,10 @@ int main(){
             case 13:
                 //Test if the LinkedList is sorted Lexicographically.
                 StrList_isSorted(list);
-                //What are we supposed to return????????????????
                 break;
             case 0:
-            //Bye bye
+                printf("\n");
+                //Bye bye
                 return 0;
             default:
                 return 0;
